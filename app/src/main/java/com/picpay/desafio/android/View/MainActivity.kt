@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -12,31 +11,27 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.picpay.desafio.android.Adapter.UserListAdapter
 import com.picpay.desafio.android.Data.PicPayService
-import com.picpay.desafio.android.Data.local.preferences.PreferencesHelper
 import com.picpay.desafio.android.Data.local.preferences.PreferencesHelperImpl
 import com.picpay.desafio.android.Data.model.User
 import com.picpay.desafio.android.Data.model.toDomain
+import com.picpay.desafio.android.Data.modules.ApiModule
 import com.picpay.desafio.android.Domain.model.UserDomain
 import com.picpay.desafio.android.Domain.model.toRemote
 import com.picpay.desafio.android.R
-import com.picpay.desafio.android.ViewModel.MainActivityViewModel
 import com.picpay.desafio.android.databinding.ActivityMainBinding
 import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
-import org.koin.android.ext.android.inject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : AppCompatActivity() {
 
-
     private val customSharedPreferences: PreferencesHelperImpl
         get() = PreferencesHelperImpl(this, Moshi.Builder().build())
-    private val mainViewModel: MainActivityViewModel by viewModels()
+//    private val mainViewModel: MainActivityViewModel by viewModels()
 
     private lateinit var binding: ActivityMainBinding
 
@@ -46,33 +41,22 @@ class MainActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var adapter: UserListAdapter
 
-    private val url = "https://609a908e0f5a13001721b74e.mockapi.io/picpay/api/"
-
-    private val gson: Gson by lazy { GsonBuilder().create() }
-
-    private val okHttp: OkHttpClient by lazy {
-        OkHttpClient.Builder()
-            .build()
-    }
-
-    private val retrofit: Retrofit by lazy {
-        Retrofit.Builder()
-            .baseUrl(url)
-            .client(okHttp)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-    }
-
-    private val service: PicPayService by lazy {
-        retrofit.create(PicPayService::class.java)
-    }
+    private val service = ApiModule().providesRetrofit()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        configPullToRefresh(savedInstanceState)
         fetchData(savedInstanceState)
+    }
+
+    private fun configPullToRefresh(savedInstanceState: Bundle?) {
+        binding.contactsRefreshLayout.setOnRefreshListener {
+            customSharedPreferences.clear()
+            fetchData(savedInstanceState)
+        }
     }
 
     private fun fetchData(savedInstanceState: Bundle?) {
@@ -83,23 +67,25 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(this)
 
-        progressBar.visibility = View.VISIBLE
+        showProgressBar(View.VISIBLE)
 
         if (savedInstanceState == null) {
 
-            var cachedUsersList = getCachedUsersList()
+            val cachedUsersList = getCachedUsersList()
 
             if (!cachedUsersList.isNullOrEmpty()) {
                 adapter.users = cachedUsersList.map {
                     it.toRemote()
                 }
+                showProgressBar(View.GONE)
             } else {
                 service.getUsers()
                     .enqueue(object : Callback<List<User>> {
+
                         override fun onFailure(call: Call<List<User>>, t: Throwable) {
                             val message = getString(R.string.error)
 
-                            progressBar.visibility = View.GONE
+                            showProgressBar(View.GONE)
                             recyclerView.visibility = View.GONE
 
                             Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT)
@@ -110,7 +96,7 @@ class MainActivity : AppCompatActivity() {
                             call: Call<List<User>>,
                             response: Response<List<User>>
                         ) {
-                            progressBar.visibility = View.GONE
+                            showProgressBar(View.GONE)
 
                             adapter.users = response.body()!!
 
@@ -124,12 +110,17 @@ class MainActivity : AppCompatActivity() {
                     })
             }
         } else {
-            progressBar.visibility = View.GONE
+            showProgressBar(View.GONE)
             usersArray = savedInstanceState.getParcelableArrayList("users")!!
             adapter.users = usersArray.map {
                 it.toRemote()
             }
         }
+        binding.contactsRefreshLayout.isRefreshing = false
+    }
+
+    private fun showProgressBar(value: Int) {
+        progressBar.visibility = value
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

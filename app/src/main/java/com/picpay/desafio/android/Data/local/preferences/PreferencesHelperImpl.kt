@@ -50,6 +50,10 @@ class PreferencesHelperImpl(context: Context, moshiParam: Moshi) : PreferencesHe
         }
     }
 
+    override fun clear() {
+        usersList = null
+    }
+
     private var usersList by PreferencesDataStore(
         dataStore = dataStore,
         key = PREF_USERS_LIST,

@@ -88,6 +88,8 @@ dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.6.21"
 
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
+
     implementation "com.squareup.moshi:moshi:1.13.0"
     kapt "com.squareup.moshi:moshi-kotlin-codegen:1.13.0"
     kapt "com.squareup.moshi:moshi-adapters:1.13.0"
