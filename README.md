@@ -8,7 +8,7 @@ Um dos desafios de qualquer time de desenvolvimento é lidar com código legado 
 
 Com o passar do tempo identificamos alguns problemas que impedem esse aplicativo de escalar e acarretam problemas de experiência do usuário. A partir disso elaboramos a seguinte lista de requisitos que devem ser cumpridos ao melhorar nossa arquitetura:
 
-- Em mudanças de configuração o aplicativo perde o estado da tela. Gostaríamos que o mesmo fosse mantido.
+X Em mudanças de configuração o aplicativo perde o estado da tela. Gostaríamos que o mesmo fosse mantido.
 - Nossos relatórios de crash têm mostrado alguns crashes relacionados a campos que não deveriam ser nulos sendo nulos e gerenciamento de lifecycle. Gostaríamos que fossem corrigidos.
 - Gostaríamos de cachear os dados retornados pelo servidor.
 - Haverá mudanças na lógica de negócios e gostaríamos que a arquitetura reaja bem a isso.

@@ -2,9 +2,11 @@ package com.picpay.desafio.android.Domain.model
 
 import android.os.Parcelable
 import com.picpay.desafio.android.Data.model.User
+import com.squareup.moshi.JsonClass
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
+@JsonClass(generateAdapter = true)
 data class UserDomain(
     val img: String,
     val name: String,

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -11,20 +12,31 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.picpay.desafio.android.Adapter.UserListAdapter
 import com.picpay.desafio.android.Data.PicPayService
+import com.picpay.desafio.android.Data.local.preferences.PreferencesHelper
+import com.picpay.desafio.android.Data.local.preferences.PreferencesHelperImpl
 import com.picpay.desafio.android.Data.model.User
 import com.picpay.desafio.android.Data.model.toDomain
 import com.picpay.desafio.android.Domain.model.UserDomain
 import com.picpay.desafio.android.Domain.model.toRemote
 import com.picpay.desafio.android.R
+import com.picpay.desafio.android.ViewModel.MainActivityViewModel
 import com.picpay.desafio.android.databinding.ActivityMainBinding
+import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
+import org.koin.android.ext.android.inject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : AppCompatActivity() {
+
+
+    private val customSharedPreferences: PreferencesHelperImpl
+        get() = PreferencesHelperImpl(this, Moshi.Builder().build())
+    private val mainViewModel: MainActivityViewModel by viewModels()
 
     private lateinit var binding: ActivityMainBinding
 
@@ -74,29 +86,43 @@ class MainActivity : AppCompatActivity() {
         progressBar.visibility = View.VISIBLE
 
         if (savedInstanceState == null) {
-            service.getUsers()
-                .enqueue(object : Callback<List<User>> {
-                    override fun onFailure(call: Call<List<User>>, t: Throwable) {
-                        val message = getString(R.string.error)
 
-                        progressBar.visibility = View.GONE
-                        recyclerView.visibility = View.GONE
+            var cachedUsersList = getCachedUsersList()
 
-                        Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT)
-                            .show()
-                    }
+            if (!cachedUsersList.isNullOrEmpty()) {
+                adapter.users = cachedUsersList.map {
+                    it.toRemote()
+                }
+            } else {
+                service.getUsers()
+                    .enqueue(object : Callback<List<User>> {
+                        override fun onFailure(call: Call<List<User>>, t: Throwable) {
+                            val message = getString(R.string.error)
 
-                    override fun onResponse(call: Call<List<User>>, response: Response<List<User>>) {
-                        progressBar.visibility = View.GONE
+                            progressBar.visibility = View.GONE
+                            recyclerView.visibility = View.GONE
 
-                        adapter.users = response.body()!!
+                            Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT)
+                                .show()
+                        }
 
-                        usersArray = ArrayList(
-                            response.body()!!.map {
-                                it.toDomain()
-                            })
-                    }
-                })
+                        override fun onResponse(
+                            call: Call<List<User>>,
+                            response: Response<List<User>>
+                        ) {
+                            progressBar.visibility = View.GONE
+
+                            adapter.users = response.body()!!
+
+                            usersArray = ArrayList(
+                                response.body()!!.map {
+                                    it.toDomain()
+                                })
+
+                            cacheUsersList(usersArray)
+                        }
+                    })
+            }
         } else {
             progressBar.visibility = View.GONE
             usersArray = savedInstanceState.getParcelableArrayList("users")!!
@@ -115,4 +141,13 @@ class MainActivity : AppCompatActivity() {
         super.onRestoreInstanceState(savedInstanceState)
 
     }
+
+    private fun cacheUsersList(users: ArrayList<UserDomain>) {
+        customSharedPreferences.setUsersListShowed(users)
+//        mainViewModel.setUsersList(users)
+    }
+
+    private fun getCachedUsersList() =
+        customSharedPreferences.getUsersListShowed()
+//        mainViewModel.getUsersList()
 }
