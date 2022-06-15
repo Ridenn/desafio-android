@@ -1,4 +1,4 @@
-package com.picpay.desafio.android.View
+package com.picpay.desafio.android.Presenter.View
 
 import android.os.Bundle
 import android.view.View
@@ -7,10 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import com.picpay.desafio.android.Adapter.UserListAdapter
-import com.picpay.desafio.android.Data.PicPayService
 import com.picpay.desafio.android.Data.local.preferences.PreferencesHelperImpl
 import com.picpay.desafio.android.Data.model.User
 import com.picpay.desafio.android.Data.model.toDomain
@@ -20,12 +17,9 @@ import com.picpay.desafio.android.Domain.model.toRemote
 import com.picpay.desafio.android.R
 import com.picpay.desafio.android.databinding.ActivityMainBinding
 import com.squareup.moshi.Moshi
-import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
@@ -97,7 +91,6 @@ class MainActivity : AppCompatActivity() {
                             response: Response<List<User>>
                         ) {
                             showProgressBar(View.GONE)
-
                             adapter.users = response.body()!!
 
                             usersArray = ArrayList(
@@ -115,6 +108,7 @@ class MainActivity : AppCompatActivity() {
             adapter.users = usersArray.map {
                 it.toRemote()
             }
+            cacheUsersList(usersArray)
         }
         binding.contactsRefreshLayout.isRefreshing = false
     }
@@ -130,7 +124,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-
     }
 
     private fun cacheUsersList(users: ArrayList<UserDomain>) {

@@ -1,4 +1,4 @@
-package com.picpay.desafio.android.ViewModel
+package com.picpay.desafio.android.Presenter.ViewModel
 
 import androidx.lifecycle.ViewModel
 import com.picpay.desafio.android.Domain.model.UserDomain
