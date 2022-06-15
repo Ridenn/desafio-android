@@ -7,17 +7,20 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class User(
-    @SerializedName("img") val img: String,
-    @SerializedName("name") val name: String,
-    @SerializedName("id") val id: Int,
-    @SerializedName("username") val username: String
+    @SerializedName("img")
+    val img: String? = null,
+    @SerializedName("name")
+    val name: String? = null,
+    @SerializedName("id")
+    val id: Int,
+    @SerializedName("username")
+    val username: String? = null
 ) : Parcelable
 
-fun User.toDomain(): UserDomain {
-    return UserDomain(
+fun User.toDomain(): UserDomain =
+    UserDomain(
         img = this.img,
         name = this.name,
         id = this.id,
         username = this.username
     )
-}

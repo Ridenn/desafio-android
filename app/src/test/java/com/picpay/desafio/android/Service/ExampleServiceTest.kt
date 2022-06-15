@@ -1,4 +1,4 @@
-package com.picpay.desafio.android
+package com.picpay.desafio.android.Service
 
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever

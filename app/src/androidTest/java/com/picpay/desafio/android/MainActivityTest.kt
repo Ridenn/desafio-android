@@ -26,7 +26,7 @@ class MainActivityTest {
         launchActivity<MainActivity>().apply {
             val expectedTitle = context.getString(R.string.title)
 
-            moveToState(Lifecycle.State.RESUMED)
+            moveToState(Lifecycle.State.CREATED)
 
             onView(withText(expectedTitle)).check(matches(isDisplayed()))
         }

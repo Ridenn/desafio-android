@@ -1,4 +1,4 @@
-package com.picpay.desafio.android
+package com.picpay.desafio.android.Service
 
 import com.picpay.desafio.android.Data.PicPayService
 import com.picpay.desafio.android.Data.model.User
